@@ -1,5 +1,5 @@
 import { routerRedux } from 'dva/router';
-import { fakeAccountLogin } from '../services/api';
+import { login } from '../services/user';
 
 export default {
   namespace: 'login',
@@ -14,14 +14,15 @@ export default {
         type: 'changeSubmitting',
         payload: true,
       });
-      const response = yield call(fakeAccountLogin, payload);
+      const response = yield call(login, payload);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
       // Login successfully
-      if (response.status === 'ok') {
+      if (response.status === true) {
         yield put(routerRedux.push('/'));
+        window.authorization = response.data.api_token;
       }
     },
     *logout(_, { put }) {

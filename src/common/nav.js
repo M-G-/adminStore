@@ -16,14 +16,55 @@ export const getNavData = app => [
     path: '/',
     children: [
       {
+        name: '基础数据',
+        icon: 'dashboard',
+        path: 'dashboard',
+        component: dynamicWrapper(app, ['items'], () => import('../routes/Home/Dashboard')),
+      },
+      {
+        name: '产品管理',
+        icon: 'appstore-o',
+        path: 'items',
+        children: [
+          {
+            name: '搜索产品',
+            path: 'search',
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Items/Search')),
+          },
+          {
+            name: '所有产品',
+            path: 'all',
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Items/All')),
+          },
+          {
+            name: '产品集合',
+            path: 'group',
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Items/Group')),
+          },
+        ],
+      },
+      {
+        name: '网上商城',
+        icon: 'shop',
+        path: 'mall',
+        children: [
+          {
+            name: '网页设置',
+            path: 'options',
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Mall/Options')),
+          },
+        ],
+      },
+      {
         name: 'Settings',
         icon: 'setting',
         path: 'settings',
+        invisible: true,
         children: [
           {
             name: 'Address',
             path: 'address',
-            component: dynamicWrapper(app, ['chart'], () => import('../routes/Settings/Address')),
+            component: dynamicWrapper(app, ['form'], () => import('../routes/Settings/Address')),
           },
         ],
       },
@@ -38,6 +79,7 @@ export const getNavData = app => [
         name: '帐户',
         icon: 'user',
         path: 'user',
+        invisible: true,
         children: [
           {
             name: '登录',

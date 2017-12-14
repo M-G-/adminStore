@@ -11,9 +11,9 @@ const { Option, OptGroup } = Select;
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
-/* @connect(state => ({
+@connect(state => ({
   submitting: state.form.regularFormSubmitting,
-})) */
+}))
 @Form.create()
 export default class BasicForms extends PureComponent {
   handleSubmit = (e) => {
@@ -48,7 +48,7 @@ export default class BasicForms extends PureComponent {
         lg: { span: 10, offset: 7 },
       },
     };
-
+    console.log(this.props);
     return (
       <PageHeaderLayout title="Address" content="Add an address so you can get paid">
         <Card bordered={false}>

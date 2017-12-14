@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'dva';
-import { Form, Input, Button, Icon, Checkbox, Alert } from 'antd';
+import { Form, Input, Button, Icon, Alert } from 'antd';
 import styles from './Login.less';
 
 const FormItem = Form.Item;
@@ -10,10 +10,6 @@ const FormItem = Form.Item;
 }))
 @Form.create()
 export default class Login extends Component {
-  state = {
-    type: 'account',
-  }
-
   componentWillUnmount() {
     clearInterval(this.interval);
   }
@@ -27,7 +23,6 @@ export default class Login extends Component {
             type: 'login/login',
             payload: {
               ...values,
-              type: this.state.type,
             },
           });
         }
@@ -51,7 +46,7 @@ export default class Login extends Component {
     const { getFieldDecorator } = form;
     return (
       <div className={styles.main}>
-        <h2 style={{ textAlign: 'center', padding: '1em' }}>Login</h2>
+        <h2 style={{ textAlign: 'center', padding: '1em' }}>&nbsp;</h2>
         <Form onSubmit={this.handleSubmit}>
           {
             login.status === 'error' &&
@@ -59,42 +54,37 @@ export default class Login extends Component {
             this.renderMessage('账户或密码错误')
           }
           <FormItem>
-            {getFieldDecorator('userName', {
+            {getFieldDecorator('email', {
               rules: [{
-                required: true, message: '请输入账户名！',
+                type: 'email', message: 'The input is not valid E-mail.',
+              }, {
+                required: true, message: 'please input E-mail.',
               }],
             })(
               <Input
                 size="large"
-                prefix={<Icon type="user" className={styles.prefixIcon} />}
-                placeholder="admin"
+                prefix={<Icon type="mail" className={styles.prefixIcon} />}
+                placeholder="Email"
               />
             )}
           </FormItem>
           <FormItem>
             {getFieldDecorator('password', {
               rules: [{
-                required: true, message: '请输入密码！',
+                required: true, message: 'please input password.',
               }],
             })(
               <Input
                 size="large"
                 prefix={<Icon type="lock" className={styles.prefixIcon} />}
                 type="password"
-                placeholder="888888"
+                placeholder="Password"
               />
             )}
           </FormItem>
           <FormItem className={styles.additional}>
-            {getFieldDecorator('remember', {
-              valuePropName: 'checked',
-              initialValue: true,
-            })(
-              <Checkbox className={styles.autoLogin}>自动登录</Checkbox>
-            )}
-            <a className={styles.forgot} href="">忘记密码</a>
             <Button size="large" loading={login.submitting} className={styles.submit} type="primary" htmlType="submit">
-              登录
+              Login
             </Button>
           </FormItem>
         </Form>

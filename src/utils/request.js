@@ -1,5 +1,7 @@
 import fetch from 'dva/fetch';
-import { notification } from 'antd';
+import { notification, message } from 'antd';
+import { apiRoot } from '../common/globalConfig';
+import { routerRedux } from 'dva/router';
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -19,25 +21,40 @@ function checkStatus(response) {
  *
  * @param  {string} url       The URL we want to request
  * @param  {object} [options] The options we want to pass to "fetch"
+ * @param  {boolean} [options] show error
  * @return {object}           An object containing either "data" or "err"
  */
 export default function request(url, options) {
   const defaultOptions = {
-    credentials: 'include',
+    // credentials: 'include',
   };
-  const newOptions = { ...defaultOptions, ...options };
+  const { showError, author, ...fetchOptions } = options;
+  const newOptions = { ...defaultOptions, ...fetchOptions };
   if (newOptions.method === 'POST' || newOptions.method === 'PUT') {
     newOptions.headers = {
       Accept: 'application/json',
-      'Content-Type': 'application/json; charset=utf-8',
+      'content-Type': 'application/json; charset=utf-8',
       ...newOptions.headers,
     };
+    if (author && !newOptions.headers.authorization && window.authorization) {
+      newOptions.headers.authorization = window.authorization;
+    }
     newOptions.body = JSON.stringify(newOptions.body);
   }
 
-  return fetch(url, newOptions)
+  return fetch(apiRoot + url, newOptions)
     .then(checkStatus)
     .then(response => response.json())
+    .then((data) => {
+      if (!data.status && showError) {
+        message.error(data.errors || 'Error');
+      }
+      if (!data.status && data.errors === 'Unauthorized') {
+        routerRedux.push('/user/login');
+        if (window.authorization) delete window.authorization;
+      }
+      return data;
+    })
     .catch((error) => {
       if (error.code) {
         notification.error({

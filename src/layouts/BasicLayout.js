@@ -69,9 +69,9 @@ class BasicLayout extends React.PureComponent {
     return { location, breadcrumbNameMap };
   }
   componentDidMount() {
-    this.props.dispatch({
+    /*this.props.dispatch({
       type: 'user/fetchCurrent',
-    });
+    });*/
   }
   componentWillUnmount() {
     this.triggerResizeEvent.cancel();
@@ -363,7 +363,7 @@ class BasicLayout extends React.PureComponent {
                     )
                   )
                 }
-                <Redirect exact from="/" to="/settings/address" />
+                <Redirect exact from="/" to="/dashboard" />
                 <Route component={NotFound} />
               </Switch>
             </div>

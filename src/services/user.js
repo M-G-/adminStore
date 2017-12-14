@@ -7,3 +7,11 @@ export async function query() {
 export async function queryCurrent() {
   return request('/api/currentUser');
 }
+
+export async function login(params) {
+  return request('/business/login', {
+    method: 'POST',
+    body: params,
+    showError: true,
+  });
+}
