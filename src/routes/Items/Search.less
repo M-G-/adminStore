@@ -1,1 +1,47 @@
 @import "~antd/lib/style/themes/default.less";
+
+.itemList {
+
+}
+
+.item {
+  width: 240px;
+  display: inline-block;
+  margin: 0 30px 30px 0;
+
+  :global {
+    .ant-card-cover {
+      height: 238px;
+      overflow: hidden;
+    }
+
+    .ant-card-body {
+      padding: 10px;
+      p {
+        margin-bottom: .5em;
+      }
+    }
+  }
+
+  .title {
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .price {
+    color: #f48e2b;
+  }
+
+  .bottom {
+    height: 20px;
+    i {
+      float: left;
+    }
+    span {
+      text-align: right;
+      display: block;
+    }
+  }
+}

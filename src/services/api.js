@@ -1,6 +1,16 @@
 import { stringify } from 'qs';
 import request from '../utils/request';
 
+export async function searchItems(params) {
+  return request('/products/search', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+/** Old Code **/
+
 export async function queryProjectNotice() {
   return request('/api/project/notice');
 }

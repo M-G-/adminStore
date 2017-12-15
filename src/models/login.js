@@ -1,5 +1,6 @@
 import { routerRedux } from 'dva/router';
 import { login } from '../services/user';
+import { setCookie } from '../utils/utils';
 
 export default {
   namespace: 'login',
@@ -22,7 +23,7 @@ export default {
       // Login successfully
       if (response.status === true) {
         yield put(routerRedux.push('/'));
-        window.authorization = response.data.api_token;
+        setCookie('_author', response.data.api_token);
       }
     },
     *logout(_, { put }) {

@@ -19,7 +19,7 @@ export const getNavData = app => [
         name: '基础数据',
         icon: 'dashboard',
         path: 'dashboard',
-        component: dynamicWrapper(app, ['items'], () => import('../routes/Home/Dashboard')),
+        component: dynamicWrapper(app, [], () => import('../routes/Home/Dashboard')),
       },
       {
         name: '产品管理',

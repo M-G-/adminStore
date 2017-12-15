@@ -10,6 +10,26 @@ import router from './router';
 // 1. Initialize
 const app = dva({
   // history: browserHistory(),
+  // onStateChange: (state) => {
+  //   console.log('-----stateChange');
+  //   console.log(state);
+  // },
+  // onAction: (state) => {
+  //   console.log('-----action');
+  //   console.log(state);
+  // },
+  // onReducer: (state) => {
+  //   console.log('-----reducer');
+  //   console.log(state);
+  // },
+  // onEffect: (state) => {
+  //   console.log('-----effect');
+  //   console.log(state);
+  // },
+  // onError: (e) => {
+  //   console.log('=-=-=-=-=-=-=-');
+  //   console.log(e);
+  // },
 });
 
 // 2. Plugins

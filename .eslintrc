@@ -47,7 +47,8 @@
     "require-yield": [1],
     "compat/compat": "error",
     "no-multiple-empty-lines" : 0,
-    "spaced-comment" : 0
+    "spaced-comment" : 0,
+    "no-trailing-spaces": 0
   },
   "parserOptions": {
     "ecmaFeatures": {

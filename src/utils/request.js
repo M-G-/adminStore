@@ -1,7 +1,8 @@
 import fetch from 'dva/fetch';
 import { notification, message } from 'antd';
 import { apiRoot } from '../common/globalConfig';
-import { routerRedux } from 'dva/router';
+// import { routerRedux } from 'dva/router';
+import { obj2Search, getConstructorName, getCookie } from '../utils/utils';
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -21,28 +22,35 @@ function checkStatus(response) {
  *
  * @param  {string} url       The URL we want to request
  * @param  {object} [options] The options we want to pass to "fetch"
- * @param  {boolean} [options] show error
  * @return {object}           An object containing either "data" or "err"
  */
-export default function request(url, options) {
+export default function request(url, options = {}) {
   const defaultOptions = {
     // credentials: 'include',
   };
   const { showError, author, ...fetchOptions } = options;
   const newOptions = { ...defaultOptions, ...fetchOptions };
-  if (newOptions.method === 'POST' || newOptions.method === 'PUT') {
-    newOptions.headers = {
-      Accept: 'application/json',
-      'content-Type': 'application/json; charset=utf-8',
-      ...newOptions.headers,
-    };
-    if (author && !newOptions.headers.authorization && window.authorization) {
-      newOptions.headers.authorization = window.authorization;
-    }
-    newOptions.body = JSON.stringify(newOptions.body);
+  let query = '';
+  newOptions.headers = {
+    Accept: 'application/json',
+    ...newOptions.headers,
+  };
+
+  if (author) {
+    const authorization = getCookie('_author');
+    if (authorization) newOptions.headers.authorization = `Bearer ${authorization}`;
   }
 
-  return fetch(apiRoot + url, newOptions)
+  if (newOptions.method === 'POST' || newOptions.method === 'PUT') {
+    newOptions.headers['content-Type'] = 'application/json; charset=utf-8';
+    newOptions.body = JSON.stringify(newOptions.body);
+  } else {
+    query = getConstructorName(newOptions.body) === 'Object'
+      ? `?${obj2Search(newOptions.body)}`
+      : newOptions.body || '';
+  }
+
+  return fetch(apiRoot + url + query, newOptions)
     .then(checkStatus)
     .then(response => response.json())
     .then((data) => {
@@ -50,8 +58,8 @@ export default function request(url, options) {
         message.error(data.errors || 'Error');
       }
       if (!data.status && data.errors === 'Unauthorized') {
-        routerRedux.push('/user/login');
-        if (window.authorization) delete window.authorization;
+        // routerRedux.push('/user/login');
+        // if (window.authorization) delete window.authorization;
       }
       return data;
     })
