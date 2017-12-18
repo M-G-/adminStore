@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Layout, Menu, Icon, Avatar, Dropdown, Tag, message, Spin } from 'antd';
+import { Layout, Menu, Icon, Avatar, Dropdown, Tag, message, Spin, Button, Popconfirm } from 'antd';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
 import { Link, Route, Redirect, Switch } from 'dva/router';
@@ -9,12 +9,13 @@ import groupBy from 'lodash/groupBy';
 import { ContainerQuery } from 'react-container-query';
 import classNames from 'classnames';
 import Debounce from 'lodash-decorators/debounce';
-import HeaderSearch from '../components/HeaderSearch';
-import NoticeIcon from '../components/NoticeIcon';
+// import HeaderSearch from '../components/HeaderSearch';
+// import NoticeIcon from '../components/NoticeIcon';
 import GlobalFooter from '../components/GlobalFooter';
 import NotFound from '../routes/Exception/404';
 import styles from './BasicLayout.less';
 import logo from '../assets/logo.svg';
+import { getCookie, removeCookie } from '../utils/utils';
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -72,6 +73,9 @@ class BasicLayout extends React.PureComponent {
     /*this.props.dispatch({
       type: 'user/fetchCurrent',
     });*/
+    this.props.dispatch({
+      type: 'settings/getAddress',
+    });
   }
   componentWillUnmount() {
     this.triggerResizeEvent.cancel();
@@ -88,6 +92,12 @@ class BasicLayout extends React.PureComponent {
         type: 'login/logout',
       });
     }
+  }
+  logout = () => {
+    removeCookie('_author');
+    this.props.dispatch({
+      type: 'login/logout',
+    });
   }
   getMenuData = (data, parentPath) => {
     let arr = [];
@@ -297,7 +307,16 @@ class BasicLayout extends React.PureComponent {
               onClick={this.toggle}
             />
             <div className={styles.right}>
-              <HeaderSearch
+              {/*<Button icon="logout" onClick={this.logout}>Logout</Button>*/}
+              <Popconfirm placement="bottomRight" title="确认登出？" onConfirm={this.logout} okText="Yes" cancelText="No">
+                <Icon
+                  className={styles.trigger}
+                  type="logout"
+                  // onClick={this.logout}
+                />
+              </Popconfirm>
+
+              {/*<HeaderSearch
                 className={`${styles.action} ${styles.search}`}
                 placeholder="站内搜索"
                 dataSource={['搜索提示一', '搜索提示二', '搜索提示三']}
@@ -345,12 +364,13 @@ class BasicLayout extends React.PureComponent {
                     {currentUser.name}
                   </span>
                 </Dropdown>
-              ) : <Spin size="small" style={{ marginLeft: 8 }} />}
+              ) : <Spin size="small" style={{ marginLeft: 8 }} />}*/}
             </div>
           </Header>
           <Content style={{ margin: '24px 24px 0', height: '100%' }}>
             <div style={{ minHeight: 'calc(100vh - 260px)' }}>
               <Switch>
+                {!getCookie('_author') && <Redirect to="/user/login" />}
                 {
                   getRouteData('BasicLayout').map(item =>
                     (

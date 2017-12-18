@@ -204,7 +204,7 @@ export function getCookie(name) {
  * @param domain <string> 域名
  * */
 export function removeCookie(name, domain) {
-  this.setCookie(name, '1', -1, domain);
+  setCookie(name, '1', -1, domain);
 }
 /**
  * 取n到m的随机数 [n,m]
@@ -243,7 +243,7 @@ export function formatPrice(price, zeroPadding, min, max) {
  * @return obj <object|array>
  * */
 export function copyJson(obj) {
-  const name = this.getConstructorName(obj);
+  const name = getConstructorName(obj);
   if (name === 'Object' || name === 'Array') {
     return JSON.parse(JSON.stringify(obj));
   } else {

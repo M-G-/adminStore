@@ -26,7 +26,7 @@ export default class SearchItems extends PureComponent {
 
   handleSubmit = (n) => {
     this.props.form.validateFieldsAndScroll((err, values) => {
-      if (!err && !this.props.loading) {
+      if (!err) {
         const { paging } = this.props;
         let payload = {
           keywords: this.props.form.getFieldValue('keywords') || '',
@@ -54,7 +54,6 @@ export default class SearchItems extends PureComponent {
     const { loading, items, paging } = this.props;
     const { getFieldDecorator } = this.props.form;
     const { high, languageMap } = this.state;
-
 
     /*const fromCol = {
       col1: {

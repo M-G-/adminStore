@@ -1,34 +1,59 @@
+/* eslint-disable camelcase */
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import {
-  Form, Input, DatePicker, Select, Button, Card, InputNumber, Radio, Icon, Tooltip, Row, Col,
+  Form, Input, Button, Card, InputNumber, Row, Col, Cascader,
 } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './Address.less';
 
 const FormItem = Form.Item;
-const { Option, OptGroup } = Select;
-const { RangePicker } = DatePicker;
-const { TextArea } = Input;
 
 @connect(state => ({
-  submitting: state.form.regularFormSubmitting,
+  submitting: state.settings.addressSubmitting,
+  address: state.settings.address,
+  editState: state.settings.addressEditState,
+  geo: state.settings.geoTree,
 }))
 @Form.create()
 export default class BasicForms extends PureComponent {
+  componentDidMount() {
+    const { address, form } = this.props;
+
+    if (address) {
+      const { country_id, state_id, city_id, ...rest } = address;
+      form.setFieldsValue({ ...rest, geo: [`${country_id}`, `${state_id}`, `${city_id}`] });
+    }
+
+    this.props.dispatch({
+      type: 'settings/initGeoData',
+      payload: address ? ['', address.country_id, address.state_id] : [],
+    });
+  }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
       if (!err) {
+        const { geo, ...rest } = values;
         this.props.dispatch({
-          type: 'form/submitRegularForm',
-          payload: values,
+          type: 'settings/updateAddress',
+          payload: { ...rest, country_id: geo[0], state_id: geo[1], city_id: geo[2] },
         });
       }
     });
   }
+  loadTree = (data) => {
+    const target = data[data.length - 1];
+    const id = target.value;
+    const { parents } = target;
+    this.props.dispatch({
+      type: 'settings/updateGeoData',
+      payload: { parents, id },
+    });
+  }
+
   render() {
-    const { submitting } = this.props;
+    const { submitting, geo } = this.props;
     const { getFieldDecorator, getFieldValue } = this.props.form;
 
     const fromCol = {
@@ -48,7 +73,7 @@ export default class BasicForms extends PureComponent {
         lg: { span: 10, offset: 7 },
       },
     };
-    console.log(this.props);
+
     return (
       <PageHeaderLayout title="Address" content="Add an address so you can get paid">
         <Card bordered={false}>
@@ -61,7 +86,7 @@ export default class BasicForms extends PureComponent {
             <Row gutter={24}>
               <Col {...fromCol.col1}>
                 <FormItem label="First Name">
-                  {getFieldDecorator('firstName', {
+                  {getFieldDecorator('first_name', {
                     rules: [{
                       required: true, message: '请输入',
                     }],
@@ -72,7 +97,7 @@ export default class BasicForms extends PureComponent {
               </Col>
               <Col {...fromCol.col2}>
                 <FormItem label="Last Name">
-                  {getFieldDecorator('lastName', {
+                  {getFieldDecorator('last_name', {
                     rules: [{
                       required: true, message: '请输入',
                     }],
@@ -85,7 +110,7 @@ export default class BasicForms extends PureComponent {
             <Row gutter={24}>
               <Col {...fromCol.col3}>
                 <FormItem label="Street Address">
-                  {getFieldDecorator('streetAddress', {
+                  {getFieldDecorator('street_address', {
                     rules: [{
                       required: true, message: '请输入',
                     }],
@@ -98,7 +123,7 @@ export default class BasicForms extends PureComponent {
             <Row gutter={24}>
               <Col {...fromCol.col3}>
                 <FormItem label="Apt, suit, etc.(optional)">
-                  {getFieldDecorator('apt', {
+                  {getFieldDecorator('suite', {
                     rules: [{
                       required: true, message: '请输入',
                     }],
@@ -109,18 +134,21 @@ export default class BasicForms extends PureComponent {
               </Col>
             </Row>
             <Row gutter={24}>
-              <Col {...fromCol.col1}>
-                <FormItem label="City">
-                  {getFieldDecorator('city', {
-                    rules: [{
-                      required: true, message: '请输入',
-                    }],
-                  })(
-                    <Input />
+              <Col {...fromCol.col3}>
+                <FormItem label="国家／省份／城市">
+                  {getFieldDecorator('geo')(
+                    <Cascader
+                      options={geo}
+                      loadData={this.loadTree}
+                      onChange={this.changeTree}
+                      changeOnSelect
+                    />
                   )}
                 </FormItem>
               </Col>
-              <Col {...fromCol.col2}>
+            </Row>
+            <Row gutter={24}>
+              <Col {...fromCol.col3}>
                 <FormItem label="ZIP/Postal Code">
                   {getFieldDecorator('zip', {
                     rules: [{
@@ -134,29 +162,8 @@ export default class BasicForms extends PureComponent {
             </Row>
             <Row gutter={24}>
               <Col {...fromCol.col1}>
-                <FormItem label="Country">
-                  {getFieldDecorator('country', {
-                    rules: [{
-                      required: true, message: '请输入',
-                    }],
-                  })(
-                    <Select>
-                      <OptGroup label="A">
-                        <Option value="a1">a1</Option>
-                        <Option value="a2">a2</Option>
-                      </OptGroup>
-                      <OptGroup label="b">
-                        <Option value="b1">b1</Option>
-                      </OptGroup>
-                    </Select>
-                  )}
-                </FormItem>
-              </Col>
-            </Row>
-            <Row gutter={24}>
-              <Col {...fromCol.col1}>
                 <FormItem label="Phone Number">
-                  {getFieldDecorator('phone', {
+                  {getFieldDecorator('phone_number', {
                     rules: [{
                       required: true, message: '请输入',
                     }],

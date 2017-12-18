@@ -10,7 +10,7 @@ const dynamicWrapper = (app, models, component) => dynamic({
 // nav data
 export const getNavData = app => [
   {
-    component: dynamicWrapper(app, ['user', 'login'], () => import('../layouts/BasicLayout')),
+    component: dynamicWrapper(app, ['user', 'login', 'settings'], () => import('../layouts/BasicLayout')),
     layout: 'BasicLayout',
     name: 'Home', // for breadcrumb
     path: '/',

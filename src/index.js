@@ -26,10 +26,10 @@ const app = dva({
   //   console.log('-----effect');
   //   console.log(state);
   // },
-  // onError: (e) => {
-  //   console.log('=-=-=-=-=-=-=-');
-  //   console.log(e);
-  // },
+  onError: (e) => {
+    console.log('=-=-=-=-=-=-=-');
+    console.log(e);
+  },
 });
 
 // 2. Plugins

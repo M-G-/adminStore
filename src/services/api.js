@@ -9,6 +9,33 @@ export async function searchItems(params) {
   });
 }
 
+export async function getAddress() {
+  return request('/business/address', {
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateAddress(params) {
+  return request('/business/address', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getGeoTreeData({ level, id }) {
+  const api = ['country', 'state', 'city'];
+  const param = ['', 'country_id', 'state_id'];
+  const body = level ? { [`${param[level]}`]: id } : {};
+  return request(`/geo/${api[level]}`, {
+    body,
+    showError: true,
+    author: true,
+  });
+}
+
 /** Old Code **/
 
 export async function queryProjectNotice() {

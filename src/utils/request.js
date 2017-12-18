@@ -1,9 +1,10 @@
+import { createHashHistory } from 'history';
 import fetch from 'dva/fetch';
 import { notification, message } from 'antd';
 import { apiRoot } from '../common/globalConfig';
-// import { routerRedux } from 'dva/router';
-import { obj2Search, getConstructorName, getCookie } from '../utils/utils';
+import { obj2Search, getConstructorName, getCookie, removeCookie } from '../utils/utils';
 
+const history = createHashHistory();
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
@@ -24,6 +25,7 @@ function checkStatus(response) {
  * @param  {object} [options] The options we want to pass to "fetch"
  * @return {object}           An object containing either "data" or "err"
  */
+
 export default function request(url, options = {}) {
   const defaultOptions = {
     // credentials: 'include',
@@ -58,8 +60,11 @@ export default function request(url, options = {}) {
         message.error(data.errors || 'Error');
       }
       if (!data.status && data.errors === 'Unauthorized') {
-        // routerRedux.push('/user/login');
-        // if (window.authorization) delete window.authorization;
+        removeCookie('_author');
+        history.push({
+          pathname: '/user/login',
+        });
+
       }
       return data;
     })
