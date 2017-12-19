@@ -9,6 +9,15 @@ export async function searchItems(params) {
   });
 }
 
+export async function addToStore(params) {
+  return request('/products/push_store', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
 export async function getAddress() {
   return request('/business/address', {
     showError: true,
@@ -36,7 +45,24 @@ export async function getGeoTreeData({ level, id }) {
   });
 }
 
-/** Old Code **/
+export async function getAllItems(params) {
+  return request('/products/index', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function changeItems(params) {
+  return request('/products/action', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+/** Old Code ⬇️ **/
 
 export async function queryProjectNotice() {
   return request('/api/project/notice');

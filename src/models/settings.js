@@ -16,7 +16,7 @@ export default {
     *getAddress(payload, { call, put }) {
       const response = yield call(getAddress);
 
-      if (!response.data || getConstructorName(response.data) === 'Array') {
+      if (response.status && (!response.data || getConstructorName(response.data) === 'Array')) {
         yield put(routerRedux.push('/settings/address'));
       } else {
         yield put({
@@ -31,10 +31,18 @@ export default {
         payload: true,
       });
       const response = yield call(updateAddress, payload);
-      yield put({
-        type: 'handleUpdateAddress',
-        payload: response,
-      });
+
+      if (response.status) {
+        yield put({
+          type: 'handleUpdateAddress',
+          payload: response,
+        });
+      } else {
+        yield put({
+          type: 'changeAddressSubmitting',
+          payload: false,
+        });
+      }
     },
     *initGeoData({ payload }, { call, put }) {
       const response = yield call(getGeoTreeData, { level: 0, id: payload[0] });
@@ -107,7 +115,7 @@ export default {
       let countryIndex = -1;
       if (tree[1]) {
         let data = tree[1];
-        let parents = ids[1] + '';
+        let parents = `${ids[1]}`;
 
         for (let i = 0; i < geoTree.length; i++) {
           if (geoTree[i].value === parents) {
@@ -119,7 +127,7 @@ export default {
 
         if (tree[2] && countryIndex > 0) {
           data = tree[2];
-          parents = ids[2] + '';
+          parents = `${ids[2]}`;
           for (let i = 0; i < geoTree[countryIndex].children.length; i++) {
             if (geoTree[countryIndex].children[i].value === parents) {
               geoTree[countryIndex].children[i].children = formatData(data, true, parents);

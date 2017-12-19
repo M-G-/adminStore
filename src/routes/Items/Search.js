@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import {
-  Form, Input, Switch, Select, Checkbox, Card, Row, Col, InputNumber, Spin, Pagination,
+  Form, Input, Switch, Select, Checkbox, Card, Row, Col, InputNumber, Spin, Pagination, Icon,
 } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './Search.less';
@@ -183,12 +183,28 @@ export default class SearchItems extends PureComponent {
                       cover={<img alt="example" src={item.imgUrl} />}
                       key={item.goodsId}
                       className={styles.item}
-                      onClick={() => {
-                        const a = document.createElement('A');
-                        a.href = item.goodsUrl;
-                        a.target = '_blank';
-                        a.click();
-                      }}
+                      actions={[
+                        <Icon
+                          type="export"
+                          title="打开商品链接"
+                          onClick={() => {
+                            const a = document.createElement('A');
+                            a.href = item.goodsUrl;
+                            a.target = '_blank';
+                            a.click();
+                          }}
+                        />,
+                        <Icon
+                          type="download"
+                          title="添加到我的店铺"
+                          onClick={() => {
+                            this.props.dispatch({
+                              type: 'items/addToStore',
+                              payload: { goods_id: item.goodsId, provider_type: item.providerType },
+                            });
+                          }}
+                        />,
+                      ]}
                     >
                       <p className={styles.title}>{item.title}</p>
                       <p className={styles.price}>￥{item.price}</p>

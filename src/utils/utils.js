@@ -287,3 +287,23 @@ export function formatTime(n) {
 
   return obj;
 }
+
+/**
+ * 类名格式化()
+ * @author MG
+ * @param data Object
+ * @return String
+ * **/
+export function className(data) {
+  return getConstructorName(data) === 'Object' ? Object.keys(data).filter(item => data[item]).join(' ') : '';
+}
+
+/**
+ * 文案格式化
+ * @author MG
+ * @param data Object
+ * @return String
+ * **/
+export function textToggle(data) {
+  return getConstructorName(data) === 'Object' ? Object.keys(data).filter(item => data[item]).join(' ') : '';
+}
