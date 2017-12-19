@@ -12,7 +12,12 @@ export default {
     searchPaging: null,
     allItemsLoading: false,
     allItems: [],
-    allItemsPaging: null,
+    allItemsPaging: {
+      current: 1,
+      pageSize: 10,
+      total: 10,
+    },
+    allItemsSelectedRowKeys: [],
   },
 
   effects: {
@@ -36,21 +41,25 @@ export default {
       }
     },
 
-    *addToStore({ payload }, { call, put }) {
+    *addToStore({ payload }, { call }) {
       const response = yield call(addToStore, payload);
       if (response.status) {
         message.success('成功加入到店铺');
       }
     },
 
-    *getAllItems({ payload }, { call, put }) {
+    *getAllItems({ payload }, { call, put, select }) {
       yield put({
         type: 'changeAllItemsLoading',
         payload: true,
       });
-      const response = yield call(getAllItems, payload);
+      const paging = yield select(state => state.items.allItemsPaging);
+
+      const params = { per_pagesize: paging.pageSize, page: paging.current, ...payload };
+
+      const response = yield call(getAllItems, params);
       if (response.status) {
-        cachePlayload = payload;
+        cachePlayload = params;
         yield put({
           type: 'uploadAllItems',
           payload: response.data,
@@ -70,6 +79,10 @@ export default {
       const response = yield call(changeItems, payload);
       if (response.status) {
         message.success('操作成功');
+        yield put({
+          type: 'handleChangeSelectedRowKeys',
+          payload: { key: 'allItemsSelectedRowKeys', value: [] },
+        });
         const response1 = yield call(getAllItems, cachePlayload);
 
         if (response1.status) {
@@ -89,6 +102,12 @@ export default {
           payload: false,
         });
       }
+    },
+    *changeSelectedRowKeys({ payload }, { put }) {
+      yield put({
+        type: 'handleChangeSelectedRowKeys',
+        payload,
+      });
     },
   },
 
@@ -151,6 +170,12 @@ export default {
           allItemsPaging: null,
         };
       }
+    },
+    handleChangeSelectedRowKeys(state, { payload }) {
+      return {
+        ...state,
+        [payload.key]: payload.value,
+      };
     },
   },
 };

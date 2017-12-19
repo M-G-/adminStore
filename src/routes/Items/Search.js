@@ -207,11 +207,15 @@ export default class SearchItems extends PureComponent {
                       ]}
                     >
                       <p className={styles.title}>{item.title}</p>
-                      <p className={styles.price}>￥{item.price}</p>
+                      <p className={styles.bottom}>
+                        <span>￥{item.price}</span>
+                        <i>{item.providerType}</i>
+                      </p>
+                      {/*<p className={styles.price}>￥{item.price}</p>
                       <div className={styles.bottom}>
                         <i>{item.providerType}</i>
                         <span>{item.statusText}</span>
-                      </div>
+                      </div>*/}
 
                     </Card>
                   ))}

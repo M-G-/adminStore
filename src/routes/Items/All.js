@@ -8,17 +8,31 @@ import styles from './All.less';
 const FormItem = Form.Item;
 const { Option } = Select;
 const { confirm } = Modal;
-let checkedRows = [];
 
 @connect(state => ({
   submitting: state.items.allItemsLoading,
   paging: state.items.allItemsPaging,
   allItems: state.items.allItems,
+  selectedRowKeys: state.items.allItemsSelectedRowKeys,
 }))
 @Form.create()
 export default class AllItems extends PureComponent {
   componentWillMount() {
     this.handleSubmit();
+  }
+
+  onSelectChange = (selectedRowKeys) => {
+    this.props.dispatch({
+      type: 'items/changeSelectedRowKeys',
+      payload: { key: 'allItemsSelectedRowKeys', value: selectedRowKeys },
+    });
+  }
+
+  clearSelected = ()=>{
+    this.props.dispatch({
+      type: 'items/changeSelectedRowKeys',
+      payload: { key: 'allItemsSelectedRowKeys', value: [] },
+    });
   }
 
   handleSubmit = (n) => {
@@ -28,7 +42,7 @@ export default class AllItems extends PureComponent {
         const { paging } = this.props;
         const payload = {
           ...values,
-          per_pagesize: 100,
+          // page: n,
           page: n || (paging ? paging.current : 1),
         };
 
@@ -48,11 +62,11 @@ export default class AllItems extends PureComponent {
   }
 
   updateItemState = (key) => {
-    const { submitting } = this.props;
-    if (!submitting && checkedRows.length) {
+    const { submitting, selectedRowKeys } = this.props;
+    if (!submitting && selectedRowKeys.length) {
       this.props.dispatch({
         type: 'items/changeItems',
-        payload: { product_id_list: checkedRows, type: key },
+        payload: { product_id_list: selectedRowKeys, type: key },
       });
     }
   }
@@ -69,7 +83,7 @@ export default class AllItems extends PureComponent {
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    const { allItems, submitting } = this.props;
+    const { allItems, submitting, selectedRowKeys, paging } = this.props;
 
     const columns = [
       {
@@ -108,9 +122,8 @@ export default class AllItems extends PureComponent {
     ];
 
     const rowSelection = {
-      onChange: (selectedRowKeys, selectedRows) => {
-        checkedRows = selectedRows.map(item => item.product_id);
-      },
+      selectedRowKeys,
+      onChange: this.onSelectChange,
     };
 
     return (
@@ -135,8 +148,8 @@ export default class AllItems extends PureComponent {
               })(
                 <Select>
                   <Option value={0}>全部</Option>
-                  <Option value={-1}>下架</Option>
-                  <Option value={1}>上架</Option>
+                  <Option value={-1}>已下架</Option>
+                  <Option value={1}>已上架</Option>
                 </Select>
               )}
             </FormItem>
@@ -153,7 +166,6 @@ export default class AllItems extends PureComponent {
             </FormItem>
           </Form>
 
-
           {!!allItems.length &&
             [
               <Dropdown
@@ -165,24 +177,45 @@ export default class AllItems extends PureComponent {
                   </Menu>
               }
                 key="1"
-
+                disabled={!selectedRowKeys.length}
               >
                 <Button>
                   更多操作 <Icon type="down" />
                 </Button>
               </Dropdown>,
+              <span
+                key="2"
+                style={{ display: selectedRowKeys.length ? 'inline' : 'none' }}
+                className={styles.countInfo}
+              >
+                已选中
+                <strong>{selectedRowKeys.length}</strong>
+                项
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={this.clearSelected}
+                >
+                  清空
+                </Button>
+              </span>,
               <Table
-                rowKey="product_name"
+                rowKey="product_id"
                 columns={columns}
                 dataSource={allItems}
                 loading={submitting}
                 rowSelection={rowSelection}
-                key="2"
+                key="3"
                 style={{ marginTop: 20 }}
+                pagination={{
+                  ...paging,
+                  onChange: (n) => {
+                    this.handleSubmit(n);
+                  },
+                }}
               />,
             ]
           }
-
 
         </Card>
       </PageHeaderLayout>
