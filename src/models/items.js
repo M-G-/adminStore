@@ -1,7 +1,10 @@
 import { message } from 'antd';
-import { searchItems, addToStore, getAllItems, changeItems } from '../services/api';
+import { routerRedux } from 'dva/router';
+import { searchItems, addToStore, getAllItems, changeItems, getGroups, createGroup, changeGroups, getGroupDetail, updateGroup } from '../services/api';
 
-let cachePlayload = {};
+
+let cachePayload = {};
+let cachePayloadGetGroups = {};
 
 export default {
   namespace: 'items',
@@ -18,6 +21,18 @@ export default {
       total: 10,
     },
     allItemsSelectedRowKeys: [],
+    groups: [],
+    groupsLoading: false,
+    groupsPaging: {
+      current: 1,
+      pageSize: 10,
+      total: 10,
+    },
+    createGroupLoading: false,
+    groupDetail: null,
+    groupDetailLoading: false,
+    updateGroupLoading: false,
+
   },
 
   effects: {
@@ -59,7 +74,7 @@ export default {
 
       const response = yield call(getAllItems, params);
       if (response.status) {
-        cachePlayload = params;
+        cachePayload = params;
         yield put({
           type: 'uploadAllItems',
           payload: response.data,
@@ -83,7 +98,7 @@ export default {
           type: 'handleChangeSelectedRowKeys',
           payload: { key: 'allItemsSelectedRowKeys', value: [] },
         });
-        const response1 = yield call(getAllItems, cachePlayload);
+        const response1 = yield call(getAllItems, cachePayload);
 
         if (response1.status) {
           yield put({
@@ -103,6 +118,136 @@ export default {
         });
       }
     },
+    *getGroups({ payload }, { call, put, select }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'groupsLoading',
+          value: true,
+        },
+      });
+      const paging = yield select(state => state.items.groupsPaging);
+      const params = { per_pagesize: paging.pageSize, page: paging.current, ...payload };
+      const response = yield call(getGroups, params);
+
+      if (response.status) {
+        cachePayloadGetGroups = params;
+        // console.log(response)
+        yield put({
+          type: 'uploadGroups',
+          payload: response.data,
+        });
+      } else {
+        yield put({
+          type: 'changeLoading',
+          payload: {
+            key: 'groupsLoading',
+            value: false,
+          },
+        });
+      }
+    },
+    *changeGroups({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'groupsLoading',
+          value: true,
+        },
+      });
+      const response = yield call(changeGroups, payload);
+      if (response.status) {
+        message.success('操作成功');
+        const response1 = yield call(getGroups, cachePayloadGetGroups);
+        if (response1.status) {
+          yield put({
+            type: 'uploadGroups',
+            payload: response1.data,
+          });
+        } else {
+          yield put({
+            type: 'changeLoading',
+            payload: false,
+          });
+        }
+      } else {
+        yield put({
+          type: 'changeLoading',
+          payload: {
+            key: 'groupsLoading',
+            value: false,
+          },
+        });
+      }
+    },
+    *createGroup({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'createGroupLoading',
+          value: true,
+        },
+      });
+      const { goDetail, ...params } = payload;
+      const response = yield call(createGroup, params);
+      if (response.status) {
+        message.success('创建成功');
+        if (goDetail) yield put(routerRedux.push(`/items/group/${response.data.collection_id}`));
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'createGroupLoading',
+          value: false,
+        },
+      });
+    },
+    *updateGroup({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updateGroupLoading',
+          value: true,
+        },
+      });
+      const { reload, ...params } = payload;
+      const response = yield call(updateGroup, params);
+      if (response.status) {
+        // yield put(routerRedux.push(`/items/group/${response.data.collection_id}`));
+        message.success('操作成功');
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updateGroupLoading',
+          value: false,
+        },
+      });
+    },
+    *getGroupDetail({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'groupDetailLoading',
+          value: true,
+        },
+      });
+      const response = yield call(getGroupDetail, payload);
+      if (response.status) {
+        yield put({
+          type: 'uploadGroupDetail',
+          payload: response.data,
+        });
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'groupDetailLoading',
+          value: false,
+        },
+      });
+    },
+
     *changeSelectedRowKeys({ payload }, { put }) {
       yield put({
         type: 'handleChangeSelectedRowKeys',
@@ -112,6 +257,12 @@ export default {
   },
 
   reducers: {
+    changeLoading(state, { payload }) {
+      return {
+        ...state,
+        [payload.key]: payload.value,
+      };
+    },
     changeSearchLoading(state, { payload }) {
       return {
         ...state,
@@ -155,19 +306,50 @@ export default {
           ...state,
           allItems: items,
           allItemsLoading: false,
-          allItemsPaging: items.length ? {
-            current: payload.current_page,
-            pageSize: payload.per_pagesize,
-            total: payload.total,
-          }
-            : null,
+          allItemsPaging:
+            payload.current_page
+              ? {
+                current: payload.current_page,
+                pageSize: payload.per_pagesize,
+                total: payload.total,
+              }
+              : {
+                current: 1,
+                pageSize: 10,
+                total: 10,
+              },
         };
-      } else {
+      }
+    },
+    uploadGroups(state, { payload }) {
+      if (payload) {
+        const items = payload.data || [];
         return {
           ...state,
-          allItems: [],
-          allItemsLoading: false,
-          allItemsPaging: null,
+          groups: items,
+          groupsLoading: false,
+          groupsPaging:
+            payload.current_page
+              ? {
+                current: payload.current_page,
+                pageSize: payload.per_pagesize,
+                total: payload.total,
+              }
+              : {
+                current: 1,
+                pageSize: 10,
+                total: 10,
+              },
+
+        };
+      }
+    },
+    uploadGroupDetail(state, { payload }) {
+      if (payload) {
+        return {
+          ...state,
+          groupDetail: payload,
+          groupDetailLoading: false,
         };
       }
     },

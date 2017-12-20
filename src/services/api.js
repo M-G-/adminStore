@@ -1,4 +1,4 @@
-import { stringify } from 'qs';
+// import { stringify } from 'qs';
 import request from '../utils/request';
 
 export async function searchItems(params) {
@@ -62,7 +62,51 @@ export async function changeItems(params) {
   });
 }
 
+export async function getGroups(params) {
+  return request('/collections', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function createGroup(params) {
+  return request('/collections', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function changeGroups(params) {
+  return request('/collections/action', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getGroupDetail(id) {
+  return request(`/collections/${id}`, {
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateGroup(params) {
+  const { id, ...rest } = params;
+  return request(`/collections/${id}`, {
+    method: 'POST',
+    body: rest,
+    showError: true,
+    author: true,
+  });
+}
+
 /** Old Code ⬇️ **/
+/*
 
 export async function queryProjectNotice() {
   return request('/api/project/notice');
@@ -140,3 +184,4 @@ export async function fakeRegister(params) {
 export async function queryNotices() {
   return request('/api/notices');
 }
+*/

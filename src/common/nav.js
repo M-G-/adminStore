@@ -38,8 +38,20 @@ export const getNavData = app => [
           },
           {
             name: '产品集合',
-            path: 'group',
+            path: 'groups',
             component: dynamicWrapper(app, ['items'], () => import('../routes/Items/Group')),
+          },
+          {
+            name: '创建集合',
+            path: '/group/new',
+            invisible: true,
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Items/GroupDetail')),
+          },
+          {
+            name: '集合详情',
+            path: '/group/:id',
+            invisible: true,
+            component: dynamicWrapper(app, ['items'], () => import('../routes/Items/GroupDetail')),
           },
         ],
       },

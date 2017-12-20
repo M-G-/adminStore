@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign,no-empty,react/no-multi-comp,max-len */
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Card, Form, Table, Input, Select, Dropdown, Button, Icon, Menu, Modal } from 'antd';
@@ -14,9 +15,16 @@ const { confirm } = Modal;
   paging: state.items.allItemsPaging,
   allItems: state.items.allItems,
   selectedRowKeys: state.items.allItemsSelectedRowKeys,
+  groupsLoading: state.items.groupsLoading,
+  groupsPaging: state.items.groupsPaging,
+  groups: state.items.groups,
 }))
 @Form.create()
 export default class AllItems extends PureComponent {
+  state = {
+    showModal: false,
+    currentId: [],
+  }
   componentWillMount() {
     this.handleSubmit();
   }
@@ -28,22 +36,21 @@ export default class AllItems extends PureComponent {
     });
   }
 
-  clearSelected = ()=>{
+  clearSelected = () => {
     this.props.dispatch({
       type: 'items/changeSelectedRowKeys',
       payload: { key: 'allItemsSelectedRowKeys', value: [] },
     });
   }
 
-  handleSubmit = (n) => {
-    const { form, submitting } = this.props;
+  handleSubmit = (n, up) => {
+    const { form, submitting, paging } = this.props;
     form.validateFieldsAndScroll((err, values) => {
       if (!err && !submitting) {
-        const { paging } = this.props;
+        if (up !== undefined) values.up_and_down = up;
         const payload = {
           ...values,
-          // page: n,
-          page: n || (paging ? paging.current : 1),
+          page: n || paging.current || 1,
         };
 
         this.props.dispatch({
@@ -54,36 +61,71 @@ export default class AllItems extends PureComponent {
     });
   }
 
-  showConfirm = (key) => {
+  showConfirm = (key, ids) => {
     confirm({
       title: '确认要删除选中商品吗?',
-      onOk: this.updateItemState.bind(this, key),
+      onOk: () => { this.updateItemState(key, ids); },
     });
   }
 
-  updateItemState = (key) => {
-    const { submitting, selectedRowKeys } = this.props;
-    if (!submitting && selectedRowKeys.length) {
+  updateItemState = (key, ids) => {
+    const { submitting } = this.props;
+    if (!submitting && ids.length) {
       this.props.dispatch({
         type: 'items/changeItems',
-        payload: { product_id_list: selectedRowKeys, type: key },
+        payload: { product_id_list: ids, type: key },
       });
     }
   }
 
-  activeMenu = (value) => {
+  activeMenu = (value, ids) => {
     const key = value.key - 0;
 
     if (key === 3) {
-      this.showConfirm(key);
+      this.showConfirm(key, ids);
+    } else if (key === 4) {
+      this.setState({
+        showModal: true,
+        currentId: ids,
+      });
     } else {
-      this.updateItemState(key);
+      this.updateItemState(key, ids);
     }
+  }
+
+  showModal = (id) => {
+    this.setState({
+      showModal: true,
+      currentId: id,
+    });
+
+    this.updateGroups();
+  }
+
+  updateGroups = (n) => {
+    const { groupsPaging } = this.props;
+    const payload = {
+      page: n || groupsPaging.current || 1,
+    };
+
+    if (!groupsPaging || !groupsPaging.length) {
+      this.props.dispatch({
+        type: 'items/getGroups',
+        payload,
+      });
+    }
+  }
+  add2Group = (id) => {
+    this.props.dispatch({
+      type: 'items/updateGroup',
+      payload: { id, product_id_list: this.state.currentId, action: 1 },
+    });
   }
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    const { allItems, submitting, selectedRowKeys, paging } = this.props;
+    const { allItems, submitting, selectedRowKeys, paging, groups, groupsLoading, groupsPaging } = this.props;
+    const { showModal, currentId } = this.state;
 
     const columns = [
       {
@@ -94,7 +136,6 @@ export default class AllItems extends PureComponent {
       {
         title: '产品名称',
         dataIndex: 'product_name',
-        // render: src => <img src={src} alt="" className={styles.img} />,
       },
       {
         title: '状态',
@@ -119,12 +160,57 @@ export default class AllItems extends PureComponent {
         dataIndex: 'platform_name',
         // render: src => <img src={src} alt="" className={styles.img} />,
       },
+      {
+        title: '操作',
+        render: (data) => {
+          const id = [data.product_id];
+          return (
+            <Button.Group size="small">
+              <Button onClick={this.showModal.bind(this, id)} type="primary">
+                加入集合
+              </Button>
+              {data.up_and_down === -1 &&
+              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }}>
+                上架
+              </Button>
+              }
+              {data.up_and_down === 1 &&
+              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }}>
+                下架
+              </Button>
+              }
+              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }}>
+                删除
+              </Button>
+            </Button.Group>
+          );
+        },
+      },
     ];
 
     const rowSelection = {
       selectedRowKeys,
       onChange: this.onSelectChange,
     };
+
+    const modalColumns = [{
+      title: '标题',
+      dataIndex: 'title',
+    }, {
+      // fixed: 'right',
+      className: styles.alignRight,
+      render: data => (
+        <Button
+          type="primary"
+          size="small"
+          onClick={() => {
+            this.add2Group(data.collection_id);
+          }}
+        >
+          加入
+        </Button>
+      ),
+    }];
 
     return (
       <PageHeaderLayout title="所有产品">
@@ -135,7 +221,6 @@ export default class AllItems extends PureComponent {
               e.preventDefault();
               this.handleSubmit();
             }}
-            className={styles.from}
             layout="inline"
             style={{ marginBottom: '20px' }}
           >
@@ -146,7 +231,9 @@ export default class AllItems extends PureComponent {
                   required: true, message: '请输入商品名称',
                 }],
               })(
-                <Select>
+                <Select
+                  onChange={(data) => { this.handleSubmit(1, data); }}
+                >
                   <Option value={0}>全部</Option>
                   <Option value={-1}>已下架</Option>
                   <Option value={1}>已上架</Option>
@@ -170,17 +257,18 @@ export default class AllItems extends PureComponent {
             [
               <Dropdown
                 overlay={
-                  <Menu onClick={this.activeMenu}>
+                  <Menu onClick={(data) => { this.activeMenu(data, selectedRowKeys); }}>
                     <Menu.Item key={2}>下架</Menu.Item>
                     <Menu.Item key={1}>上架</Menu.Item>
                     <Menu.Item key={3}>删除</Menu.Item>
+                    <Menu.Item key={4}>加入集合</Menu.Item>
                   </Menu>
               }
                 key="1"
                 disabled={!selectedRowKeys.length}
               >
                 <Button>
-                  更多操作 <Icon type="down" />
+                  批量操作 <Icon type="down" />
                 </Button>
               </Dropdown>,
               <span
@@ -218,7 +306,77 @@ export default class AllItems extends PureComponent {
           }
 
         </Card>
+        <Modal
+          visible={showModal}
+          title="加入集合"
+          loading={groupsLoading}
+          footer={null}
+          onCancel={() => {
+            this.setState({
+              showModal: false,
+            });
+          }}
+        >
+          <CreateGroup />
+          <p>共{currentId.length}个商品，可加入以下集合</p>
+          <Table
+            rowKey="collection_id"
+            columns={modalColumns}
+            dataSource={groups}
+            loading={groupsLoading}
+            showHeader={false}
+            size="small"
+            pagination={{
+              ...groupsPaging,
+              onChange: (n) => {
+                this.updateGroups(n);
+              },
+            }}
+          />
+        </Modal>
       </PageHeaderLayout>
+    );
+  }
+}
+
+
+@connect(state => ({
+  loading: state.items.createGroupLoading,
+}))
+class CreateGroup extends PureComponent {
+  createGroup = (data) => {
+    const a = this.props.dispatch({
+      type: 'items/createGroup',
+      payload: { title: data },
+    });
+    a.then(() => {
+      this.props.dispatch({
+        type: 'items/getGroups',
+        payload: { page: 1 },
+      });
+
+      try {
+        this.input.input.input.value = '';
+      } catch (e) {}
+    });
+  }
+  render() {
+    const { loading } = this.props;
+
+    return (
+      <div
+        style={{ height: '46px' }}
+      >
+        <Input.Search
+          placeholder="请输入集合标题"
+          enterButton="新建集合"
+          onSearch={(data) => {
+            if (data) this.createGroup(data);
+          }}
+          loading={`${loading}`}
+          ref={(c) => { this.input = c; }}
+        />
+      </div>
     );
   }
 }

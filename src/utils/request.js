@@ -64,7 +64,6 @@ export default function request(url, options = {}) {
         history.push({
           pathname: '/user/login',
         });
-
       }
       return data;
     })
