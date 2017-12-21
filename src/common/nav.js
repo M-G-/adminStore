@@ -61,9 +61,9 @@ export const getNavData = app => [
         path: 'mall',
         children: [
           {
-            name: '网页设置',
-            path: 'options',
-            component: dynamicWrapper(app, ['items'], () => import('../routes/Mall/Options')),
+            name: '页面设置',
+            path: 'pages',
+            component: dynamicWrapper(app, ['mall'], () => import('../routes/Mall/Pages')),
           },
         ],
       },

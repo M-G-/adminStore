@@ -1,23 +1,7 @@
 // import { stringify } from 'qs';
 import request from '../utils/request';
 
-export async function searchItems(params) {
-  return request('/products/search', {
-    body: params,
-    showError: true,
-    author: true,
-  });
-}
-
-export async function addToStore(params) {
-  return request('/products/push_store', {
-    method: 'POST',
-    body: params,
-    showError: true,
-    author: true,
-  });
-}
-
+/** 地址相关 **/
 export async function getAddress() {
   return request('/business/address', {
     showError: true,
@@ -45,6 +29,24 @@ export async function getGeoTreeData({ level, id }) {
   });
 }
 
+/** 商品相关 **/
+export async function searchItems(params) {
+  return request('/products/search', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function addToStore(params) {
+  return request('/products/push_store', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
 export async function getAllItems(params) {
   return request('/products/index', {
     body: params,
@@ -62,6 +64,7 @@ export async function changeItems(params) {
   });
 }
 
+/** 集合相关 **/
 export async function getGroups(params) {
   return request('/collections', {
     body: params,
@@ -105,83 +108,11 @@ export async function updateGroup(params) {
   });
 }
 
-/** Old Code ⬇️ **/
-/*
-
-export async function queryProjectNotice() {
-  return request('/api/project/notice');
-}
-
-export async function queryActivities() {
-  return request('/api/activities');
-}
-
-export async function queryRule(params) {
-  return request(`/api/rule?${stringify(params)}`);
-}
-
-export async function removeRule(params) {
-  return request('/api/rule', {
-    method: 'POST',
-    body: {
-      ...params,
-      method: 'delete',
-    },
-  });
-}
-
-export async function addRule(params) {
-  return request('/api/rule', {
-    method: 'POST',
-    body: {
-      ...params,
-      method: 'post',
-    },
-  });
-}
-
-export async function fakeSubmitForm(params) {
-  return request('/api/forms', {
-    method: 'POST',
+/** 页面相关 **/
+export async function getPages(params) {
+  return request('/pages', {
     body: params,
+    showError: true,
+    author: true,
   });
 }
-
-export async function fakeChartData() {
-  return request('/api/fake_chart_data');
-}
-
-export async function queryTags() {
-  return request('/api/tags');
-}
-
-export async function queryBasicProfile() {
-  return request('/api/profile/basic');
-}
-
-export async function queryAdvancedProfile() {
-  return request('/api/profile/advanced');
-}
-
-export async function queryFakeList(params) {
-  return request(`/api/fake_list?${stringify(params)}`);
-}
-
-export async function fakeAccountLogin(params) {
-  return request('/api/login/account', {
-    method: 'POST',
-    body: params,
-  });
-}
-
-export async function fakeRegister(params) {
-  return request('/api/register', {
-    method: 'POST',
-    body: params,
-  });
-}
-
-export async function queryNotices() {
-  return request('/api/notices');
-}
-*/
