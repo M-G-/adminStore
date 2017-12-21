@@ -1,33 +1,38 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Table, Input, Select, Dropdown, Button, Icon, Menu, Modal, Spin } from 'antd';
+import { Link } from 'dva/router';
+import { Card, Form, Table, Input, Button, Upload, Row, Col, Icon, message } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
-// import { className, textToggle } from '../../utils/utils';
 import styles from './GroupDetail.less';
+import { apiRoot } from '../../common/globalConfig';
+import { getCookie } from '../../utils/utils';
+
 const FormItem = Form.Item;
+const { Dragger } = Upload;
+
 @connect(state => ({
   createLoading: state.items.createGroupLoading,
   detail: state.items.groupDetail,
   detailLoading: state.items.groupDetailLoading,
-  // groups: state.items.groups,
-  // paging: state.items.groupsPaging,
+  updateLoading: state.items.updateGroupLoading,
 }))
 @Form.create()
 export default class ItemsGroup extends PureComponent {
   state = {
     id: this.props.match.params.id,
     type: this.props.match.params.id ? 1 : 0,
+    coverImg: '',
   }
   componentWillMount() {
-    // this.handleSubmit();
-    // console.log(this.state.type);
     const { type, id } = this.state;
     if (type) this.getGroupDetail(id);
   }
-  getGroupDetail = (id) => {
+  getGroupDetail = (id, reset) => {
     this.props.dispatch({
       type: 'items/getGroupDetail',
       payload: id,
+    }).then(() => {
+      if (reset !== false) this.resetDetail();
     });
   }
   createGroup = () => {
@@ -36,6 +41,7 @@ export default class ItemsGroup extends PureComponent {
       if (!err) {
         const payload = {
           ...values,
+          file: this.state.coverImg,
           goDetail: true,
         };
 
@@ -46,10 +52,55 @@ export default class ItemsGroup extends PureComponent {
       }
     });
   }
+  resetDetail = () => {
+    const { form, detail } = this.props;
+    if (detail) {
+      const { title, description } = detail;
+      form.setFieldsValue({ title, description });
+      this.setState({
+        coverImg: detail.cover_images,
+      });
+    }
+  }
+  updateGroup = () => {
+    const { form, detail } = this.props;
+    const { id, coverImg } = this.state;
+    form.validateFieldsAndScroll((err, values) => {
+      if (!err) {
+        const payload = {
+          ...values,
+          id,
+          file: coverImg || '',
+          product_id_list: detail.product_list.map(item => item.product_id),
+          action: 2,
+        };
+
+        this.props.dispatch({
+          type: 'items/updateGroup',
+          payload,
+        }).then(() => {
+          this.getGroupDetail(id);
+        });
+      }
+    });
+  }
+  deleteItem = (itemId) => {
+    const { id } = this.state;
+    this.props.dispatch({
+      type: 'items/updateGroup',
+      payload: {
+        product_id_list: itemId,
+        action: 3,
+        id,
+      },
+    }).then(() => {
+      this.getGroupDetail(id, false);
+    });
+  }
   render() {
-    const { form, createLoading, detail, detailLoading } = this.props;
+    const { form, createLoading, detail, detailLoading, updateLoading } = this.props;
     const { getFieldDecorator } = form;
-    const { type } = this.state;
+    const { type, coverImg } = this.state;
 
     const columns = [
       {
@@ -64,53 +115,138 @@ export default class ItemsGroup extends PureComponent {
 
       {
         title: '操作',
+        className: styles.action,
         render: (data) => {
           return (
-            <a>删除</a>
+            <Button icon="delete" onClick={() => { this.deleteItem([data.product_id]); }} />
           );
         },
       },
     ];
 
-    return (
-      <PageHeaderLayout title={type ? '集合详情' : '创建集合'} className={styles.wrapper}>
-        <Card bordered={false}>
-          {type
-            ? !detailLoading && detail
-              ? <div>
-                <p>集合标题:{detail.title}</p>
-                {/*<p>集合商品:{JSON.stringify(detail.product_list)}</p>*/}
-                <Table
-                  rowKey="product_id"
-                  columns={columns}
-                  dataSource={detail.product_list}
-                />
-                </div>
-              : <Spin />
-            : <Form
-              hideRequiredMark
-              /*onSubmit={(e) => {
-                e.preventDefault();
-                this.handleSubmit();
-              }}*/
-              // className={styles.from}
-              layout="inline"
-            >
-              <FormItem label="标题">
-                {getFieldDecorator('title', {
-                  initialValue: '',
-                  rules: [{
-                    required: true, message: '请输入集合标题',
-                  }],
-                })(
-                  <Input />
-                )}
-              </FormItem>
-              <Button type="primary" onClick={this.createGroup} loading={createLoading}>创建</Button>
-            </Form>
-          }
+    const actionCreate = (
+      <div>
+        <Button type="primary" onClick={this.createGroup} loading={createLoading}>创建</Button>
+      </div>
+    );
 
-        </Card>
+    const actionUpdate = (
+      <div>
+        <Button icon="rollback" onClick={this.resetDetail}>撤销</Button>
+        <Button icon="save" type="primary" onClick={this.updateGroup} loading={updateLoading || detailLoading}>保存</Button>
+      </div>
+    );
+
+    const layout = {
+      left: {
+        // xs: { span: 18 },
+        sm: { span: 16 },
+        lg: { span: 18 },
+      },
+      right: {
+        // xs: { span: 6 },
+        sm: { span: 8 },
+        lg: { span: 6 },
+      },
+    };
+
+    return (
+      <PageHeaderLayout
+        title={type ? '集合详情' : '创建集合'}
+        className={styles.wrapper}
+        action={type ? actionUpdate : actionCreate}
+      >
+        <Row gutter={16}>
+          <Col {...layout.left}>
+            <Card bordered={false}>
+              <Form
+                hideRequiredMark
+                layout="vertical"
+              >
+                <FormItem label="标题">
+                  {getFieldDecorator('title', {
+                    initialValue: '',
+                    rules: [{
+                      required: true, message: '请输入集合标题',
+                    }],
+                  })(
+                    <Input />
+                  )}
+                </FormItem>
+                <FormItem label="描述">
+                  {getFieldDecorator('description', {
+                    initialValue: '',
+                  })(
+                    <Input.TextArea />
+                  )}
+                </FormItem>
+              </Form>
+            </Card>
+          </Col>
+
+          <Col {...layout.right}>
+            <Card bordered={false}>
+              <h3>封面图片</h3>
+              <Dragger
+                action={`${apiRoot}/images/upload`}
+                listType="picture-card"
+                name="file"
+                multiple={false}
+                showUploadList={false}
+                headers={{ authorization: `Bearer ${getCookie('_author')}` }}
+                beforeUpload={(file) => {
+                  const isJPG = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif';
+                  const isLt2M = file.size / 1024 / 1024 < 2;
+
+                  if (!isJPG || !isLt2M) {
+                    message.error('请上传小于2M的jpg、gif、png格式图片');
+                  }
+                  return isJPG && isLt2M;
+                }}
+                onChange={(info) => {
+                  try {
+                    const cover = this.state.coverImg;
+                    const { response } = info.fileList[0];
+                    const res = response.data.image_url;
+                    if (res && res !== cover) {
+                      this.setState({ coverImg: res });
+                    }
+                  } catch (e) {}
+                }}
+              >
+                {coverImg
+                  ? <div className={styles.coverImg}><img src={coverImg} alt="" /></div>
+                  : <div>
+                      <p className="ant-upload-drag-icon">
+                        <Icon type="inbox" />
+                      </p>
+                      <p className="ant-upload-text">点击或将文件拖拽到这里上传</p>
+                    </div>
+
+                }
+
+              </Dragger>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={16} style={{ marginTop: 16 }}>
+          <Col {...layout.left}>
+            <Card bordered={false}>
+              <h3>产品 <Link disabled={!type} to="/items/all/" style={{ marginLeft: 20 }}><Button disabled={!type} icon="plus" type="primary" size="small">添加产品</Button></Link></h3>
+              <Table
+                rowKey="product_id"
+                columns={columns}
+                dataSource={detail && type ? detail.product_list : null}
+                size="small"
+                showHeader={false}
+                style={{ marginTop: 20 }}
+                loading={detailLoading || updateLoading}
+              />
+            </Card>
+          </Col>
+        </Row>
+
       </PageHeaderLayout>
     );
   }

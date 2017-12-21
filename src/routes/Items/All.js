@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign,no-empty,react/no-multi-comp,max-len */
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
+import { Link } from 'dva/router';
 import { Card, Form, Table, Input, Select, Dropdown, Button, Icon, Menu, Modal } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { className, textToggle } from '../../utils/utils';
@@ -84,10 +85,7 @@ export default class AllItems extends PureComponent {
     if (key === 3) {
       this.showConfirm(key, ids);
     } else if (key === 4) {
-      this.setState({
-        showModal: true,
-        currentId: ids,
-      });
+      this.showModal(ids);
     } else {
       this.updateItemState(key, ids);
     }
@@ -98,7 +96,6 @@ export default class AllItems extends PureComponent {
       showModal: true,
       currentId: id,
     });
-
     this.updateGroups();
   }
 
@@ -162,26 +159,25 @@ export default class AllItems extends PureComponent {
       },
       {
         title: '操作',
+        className: styles.action,
         render: (data) => {
           const id = [data.product_id];
           return (
             <Button.Group size="small">
-              <Button onClick={this.showModal.bind(this, id)} type="primary">
+              <Button onClick={this.showModal.bind(this, id)} type="primary" icon="download">
                 加入集合
               </Button>
               {data.up_and_down === -1 &&
-              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }}>
+              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }} icon="check-circle-o">
                 上架
               </Button>
               }
               {data.up_and_down === 1 &&
-              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }}>
+              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }} icon="minus-circle-o" >
                 下架
               </Button>
               }
-              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }}>
-                删除
-              </Button>
+              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }} icon="delete" />
             </Button.Group>
           );
         },
@@ -193,24 +189,32 @@ export default class AllItems extends PureComponent {
       onChange: this.onSelectChange,
     };
 
-    const modalColumns = [{
-      title: '标题',
-      dataIndex: 'title',
-    }, {
-      // fixed: 'right',
-      className: styles.alignRight,
-      render: data => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => {
-            this.add2Group(data.collection_id);
-          }}
-        >
-          加入
-        </Button>
-      ),
-    }];
+    const modalColumns = [
+      {
+        title: '标题',
+        dataIndex: 'title',
+      },
+      {
+        className: styles.alignRight,
+        render: data => (
+          <div>
+            <Link to={`/items/group/${data.collection_id}`}>
+              <Icon type="edit" style={{ color: '#999' }} />
+            </Link>
+            <Button
+              type="primary"
+              size="small"
+              icon="download"
+              style={{ marginLeft: 15 }}
+              onClick={() => {
+                this.add2Group(data.collection_id);
+              }}
+            />
+          </div>
+        ),
+      },
+
+    ];
 
     return (
       <PageHeaderLayout title="所有产品">
@@ -258,10 +262,10 @@ export default class AllItems extends PureComponent {
               <Dropdown
                 overlay={
                   <Menu onClick={(data) => { this.activeMenu(data, selectedRowKeys); }}>
-                    <Menu.Item key={2}>下架</Menu.Item>
-                    <Menu.Item key={1}>上架</Menu.Item>
-                    <Menu.Item key={3}>删除</Menu.Item>
-                    <Menu.Item key={4}>加入集合</Menu.Item>
+                    <Menu.Item key={4}><Icon type="download" /> 加入集合</Menu.Item>
+                    <Menu.Item key={1}><Icon type="check-circle-o" /> 上架</Menu.Item>
+                    <Menu.Item key={2}><Icon type="minus-circle-o" /> 下架</Menu.Item>
+                    <Menu.Item key={3}><Icon type="delete" /> 删除</Menu.Item>
                   </Menu>
               }
                 key="1"
@@ -282,6 +286,7 @@ export default class AllItems extends PureComponent {
                 <Button
                   type="primary"
                   size="small"
+                  icon="rollback"
                   onClick={this.clearSelected}
                 >
                   清空

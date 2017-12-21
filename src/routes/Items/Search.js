@@ -13,6 +13,7 @@ const { Option } = Select;
   loading: state.items.searchLoading,
   items: state.items.searchItems,
   paging: state.items.searchPaging,
+  addQueue: state.items.addQueue,
 }))
 @Form.create()
 export default class SearchItems extends PureComponent {
@@ -51,9 +52,10 @@ export default class SearchItems extends PureComponent {
     });
   }
   render() {
-    const { loading, items, paging } = this.props;
+    const { loading, items, paging, addQueue } = this.props;
     const { getFieldDecorator } = this.props.form;
     const { high, languageMap } = this.state;
+    console.log(addQueue);
 
     /*const fromCol = {
       col1: {
@@ -194,16 +196,21 @@ export default class SearchItems extends PureComponent {
                             a.click();
                           }}
                         />,
-                        <Icon
-                          type="download"
-                          title="添加到我的店铺"
-                          onClick={() => {
-                            this.props.dispatch({
-                              type: 'items/addToStore',
-                              payload: { goods_id: item.goodsId, provider_type: item.providerType },
-                            });
-                          }}
-                        />,
+                        addQueue[item.goodsId]
+                          ? <Icon type="loading" />
+                          : <Icon
+                            type="download"
+                            title="添加到我的店铺"
+                            onClick={() => {
+                              this.props.dispatch({
+                                type: 'items/addToStore',
+                                payload: {
+                                  goods_id: item.goodsId,
+                                  provider_type: item.providerType,
+                                },
+                              });
+                            }}
+                          />,
                       ]}
                     >
                       <p className={styles.title}>{item.title}</p>

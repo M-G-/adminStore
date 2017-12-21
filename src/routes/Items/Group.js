@@ -4,7 +4,7 @@ import { Link } from 'dva/router';
 import { Card, Form, Table, Input, Select, Dropdown, Button, Icon, Menu, Modal, Divider } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 // import { className, textToggle } from '../../utils/utils';
-// import styles from './Group.less';
+import styles from './Group.less';
 const { confirm } = Modal;
 
 @connect(state => ({
@@ -50,8 +50,8 @@ export default class ItemsGroup extends PureComponent {
     const columns = [
       {
         title: '封面',
-        dataIndex: 'spu_img',
-        // render: src => <img src={src} alt="" className={styles.img} />,
+        dataIndex: 'cover_images',
+        render: src => <img src={src} alt="" className={styles.img} />,
       },
       {
         title: '标题',
@@ -63,12 +63,13 @@ export default class ItemsGroup extends PureComponent {
       },
       {
         title: '操作',
+        className: styles.action,
         render: (data) => {
           return (
             <div>
               <Button.Group size="small">
-                <Button type="primary"><Link to={`/items/group/${data.collection_id}`}>编辑</Link></Button>
-                <Button onClick={this.showConfirm.bind(this, data.collection_id)}>删除</Button>
+                <Button type="primary"><Link to={`/items/group/${data.collection_id}`}><Icon type="edit" /> 编辑</Link></Button>
+                <Button icon="delete" onClick={this.showConfirm.bind(this, data.collection_id)} />
               </Button.Group>
 
             </div>

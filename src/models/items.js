@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import { routerRedux } from 'dva/router';
+import { copyJson } from '../utils/utils';
 import { searchItems, addToStore, getAllItems, changeItems, getGroups, createGroup, changeGroups, getGroupDetail, updateGroup } from '../services/api';
 
 
@@ -13,6 +14,7 @@ export default {
     searchLoading: false,
     searchItems: [],
     searchPaging: null,
+    addQueue: {},
     allItemsLoading: false,
     allItems: [],
     allItemsPaging: {
@@ -56,11 +58,20 @@ export default {
       }
     },
 
-    *addToStore({ payload }, { call }) {
+    *addToStore({ payload }, { call, put }) {
+      const { goods_id: id } = payload;
+      yield put({
+        type: 'renderAddQueue',
+        payload: { id, type: 1 },
+      });
       const response = yield call(addToStore, payload);
       if (response.status) {
         message.success('成功加入到店铺');
       }
+      yield put({
+        type: 'renderAddQueue',
+        payload: { id, type: 0 },
+      });
     },
 
     *getAllItems({ payload }, { call, put, select }) {
@@ -213,7 +224,7 @@ export default {
       const { reload, ...params } = payload;
       const response = yield call(updateGroup, params);
       if (response.status) {
-        // yield put(routerRedux.push(`/items/group/${response.data.collection_id}`));
+        // if (reload) yield put(routerRedux.push(`/items/group/${params.collection_id}`));
         message.success('操作成功');
       }
       yield put({
@@ -247,7 +258,6 @@ export default {
         },
       });
     },
-
     *changeSelectedRowKeys({ payload }, { put }) {
       yield put({
         type: 'handleChangeSelectedRowKeys',
@@ -267,6 +277,21 @@ export default {
       return {
         ...state,
         searchLoading: payload,
+      };
+    },
+    renderAddQueue(state, { payload }) {
+      const addQueue = copyJson(state.addQueue);
+      const { id, type } = payload;
+
+      if (type) {
+        addQueue[id] = 1;
+      } else if (addQueue[id]) {
+        delete addQueue[id];
+      }
+
+      return {
+        ...state,
+        addQueue,
       };
     },
     uploadSearchItems(state, { payload }) {

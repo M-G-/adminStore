@@ -59,7 +59,7 @@ export default {
 
       yield put({
         type: 'handleInitGeoTree',
-        payload: { tree: [response.data, response1.data.data, response2.data], ids: payload },
+        payload: { tree: [response.data, response1 ? response1.data.data : '', response2 ? response2.data : ''], ids: payload },
       });
     },
     *updateGeoData({ payload }, { call, put }) {

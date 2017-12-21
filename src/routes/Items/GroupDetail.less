@@ -1,13 +1,30 @@
 @import "~antd/lib/style/themes/default.less";
 
-.wrapper{
-  :global{
+.wrapper {
+  :global {
     .ant-breadcrumb {
-      span:nth-of-type(3){
+      span:nth-of-type(3) {
         display: none;
       }
     }
   }
 }
 
+.img {
+  max-width: 50px;
+  max-height: 50px;
+}
 
+.action {
+  width: 100px;
+  text-align: right;
+}
+
+.coverImg {
+  padding: 0 16px;
+
+  img {
+    max-width: 100%;
+    max-height: 200px;
+  }
+}
