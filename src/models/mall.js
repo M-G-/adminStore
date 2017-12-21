@@ -1,45 +1,53 @@
 import { message } from 'antd';
 import { routerRedux } from 'dva/router';
 import { copyJson } from '../utils/utils';
-import { getPages } from '../services/api';
+import { getPages, getPageDetail, createPage, updatePage, updatePagesState } from '../services/api';
 
 
 /*let cachePayload = {};
 let cachePayloadGetGroups = {};*/
-let cacheGetAllPages = {};
+let cacheGetPages = {};
 
 export default {
   namespace: 'mall',
 
   state: {
-    allPagesLoading: false,
-    allPagesUpdateLoading: false,
-    allPages: [],
-    allPagesPaging: {
+
+    /** 页面列表 **/
+    pagesLoading: false,
+    updatePagesStateLoading: false,
+    pages: [],
+    pagesPaging: {
       current: 1,
       pageSize: 10,
       total: 10,
     },
-    allPagesSelectedRowKeys: [],
+    pagesSelectedRowKeys: [],
+
+    /** 页面详情，新建页面 **/
+    createPageLoading: false,
+    pageDetailLoading: false,
+    pageDetail: null,
+    updatePageLoading: false,
 
   },
 
   effects: {
-    *getAllPages({ payload }, { call, put, select }) {
+    *getPages({ payload }, { call, put, select }) {
       yield put({
         type: 'changeLoading',
         payload: {
-          key: 'allPagesLoading',
+          key: 'pagesLoading',
           value: true,
         },
       });
-      const paging = yield select(state => state.mall.allPagesPaging);
+      const paging = yield select(state => state.mall.pagesPaging);
 
       const params = { per_pagesize: paging.pageSize, page: paging.current, ...payload };
 
       const response = yield call(getPages, params);
       if (response.status) {
-        cacheGetAllPages = params;
+        cacheGetPages = params;
         yield put({
           type: 'updateAllPages',
           payload: response.data,
@@ -48,11 +56,109 @@ export default {
         yield put({
           type: 'changeLoading',
           payload: {
-            key: 'allPagesLoading',
+            key: 'pagesLoading',
             value: false,
           },
         });
       }
+    },
+    *updatePagesState({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updatePagesStateLoading',
+          value: true,
+        },
+      });
+      const response = yield call(updatePagesState, payload);
+      if (response.status) {
+        message.success('操作成功');
+        yield put({
+          type: 'handleChangeSelectedRowKeys',
+          payload: { key: 'pagesSelectedRowKeys', value: [] },
+        });
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updatePagesStateLoading',
+          value: false,
+        },
+      });
+    },
+    *createPage({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'createPageLoading',
+          value: true,
+        },
+      });
+      const { goDetail, ...params } = payload;
+      const response = yield call(createPage, params);
+      if (response.status) {
+        message.success('创建成功');
+        if (goDetail) yield put(routerRedux.push(`/mall/page/${response.data.page_id}`));
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'createPageLoading',
+          value: false,
+        },
+      });
+    },
+    *getPageDetail({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'pageDetailLoading',
+          value: true,
+        },
+      });
+      const response = yield call(getPageDetail, payload);
+      if (response.status) {
+        yield put({
+          type: 'updatePageDetail',
+          payload: response.data,
+        });
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'pageDetailLoading',
+          value: false,
+        },
+      });
+    },
+    *updatePage({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updatePageLoading',
+          value: true,
+        },
+      });
+      const response = yield call(updatePage, payload);
+      if (response.status) {
+        message.success('操作成功');
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: {
+          key: 'updatePageLoading',
+          value: false,
+        },
+      });
+    },
+    *changeSelectedRowKeys({ payload }, { put }) {
+      yield put({
+        type: 'handleChangeSelectedRowKeys',
+        payload: {
+          key: payload.key,
+          value: payload.value,
+        },
+      });
     },
   },
 
@@ -63,7 +169,7 @@ export default {
         [payload.key]: payload.value,
       };
     },
-    changeSelectedRowKeys(state, { payload }) {
+    handleChangeSelectedRowKeys(state, { payload }) {
       return {
         ...state,
         [payload.key]: payload.value,
@@ -74,9 +180,9 @@ export default {
         const pages = payload.data || [];
         return {
           ...state,
-          allPages: pages,
-          allPagesLoading: false,
-          allPagesPaging:
+          pages: pages,
+          pagesLoading: false,
+          pagesPaging:
             payload.current_page
               ? {
                 current: payload.current_page,
@@ -90,7 +196,13 @@ export default {
               },
         };
       }
-
+    },
+    updatePageDetail(state, { payload }) {
+      return {
+        ...state,
+        pageDetail: payload,
+        pageDetailLoading: false,
+      };
     },
   },
 };

@@ -55,7 +55,6 @@ export default class SearchItems extends PureComponent {
     const { loading, items, paging, addQueue } = this.props;
     const { getFieldDecorator } = this.props.form;
     const { high, languageMap } = this.state;
-    console.log(addQueue);
 
     /*const fromCol = {
       col1: {
@@ -108,7 +107,7 @@ export default class SearchItems extends PureComponent {
                     }],
                   })(
                     <Input.Search
-                      placeholder="请输入"
+                      // placeholder="请输入关键字"
                       onSearch={() => { this.handleSubmit(); }}
                       enterButton
                     />

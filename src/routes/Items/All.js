@@ -168,16 +168,16 @@ export default class AllItems extends PureComponent {
                 加入集合
               </Button>
               {data.up_and_down === -1 &&
-              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }} icon="check-circle-o">
+              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }} icon="check-circle-o" type="primary" ghost>
                 上架
               </Button>
               }
               {data.up_and_down === 1 &&
-              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }} icon="minus-circle-o" >
+              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }} icon="minus-circle-o" type="primary" ghost>
                 下架
               </Button>
               }
-              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }} icon="delete" />
+              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }} icon="delete" type="primary" ghost />
             </Button.Group>
           );
         },
@@ -284,9 +284,8 @@ export default class AllItems extends PureComponent {
                 <strong>{selectedRowKeys.length}</strong>
                 项
                 <Button
-                  type="primary"
                   size="small"
-                  icon="rollback"
+                  icon="close"
                   onClick={this.clearSelected}
                 >
                   清空

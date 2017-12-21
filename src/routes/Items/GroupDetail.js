@@ -126,7 +126,7 @@ export default class ItemsGroup extends PureComponent {
 
     const actionCreate = (
       <div>
-        <Button type="primary" onClick={this.createGroup} loading={createLoading}>创建</Button>
+        <Button type="primary" onClick={this.createGroup} loading={createLoading}>保存</Button>
       </div>
     );
 
@@ -152,13 +152,14 @@ export default class ItemsGroup extends PureComponent {
 
     return (
       <PageHeaderLayout
-        title={type ? '集合详情' : '创建集合'}
+        title={type ? '集合详情' : '新建集合'}
         className={styles.wrapper}
         action={type ? actionUpdate : actionCreate}
       >
         <Row gutter={16}>
           <Col {...layout.left}>
             <Card bordered={false}>
+              <h3>集合细节</h3>
               <Form
                 hideRequiredMark
                 layout="vertical"

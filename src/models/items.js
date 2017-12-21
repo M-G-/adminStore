@@ -46,6 +46,7 @@ export default {
       const response = yield call(searchItems, payload);
 
       if (response.status) {
+        if (!response.data.datas || !response.data.datas.length) message.warning('无结果');
         yield put({
           type: 'uploadSearchItems',
           payload: response.data,

@@ -2,100 +2,78 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Link } from 'dva/router';
-import { Card, Form, Table, Input, Select, Dropdown, Button, Icon, Menu, Modal } from 'antd';
+import { Card, Form, Table, Dropdown, Button, Icon, Menu, Modal } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { className, textToggle } from '../../utils/utils';
 import styles from './Pages.less';
 
-const FormItem = Form.Item;
-const { Option } = Select;
 const { confirm } = Modal;
 
 @connect(state => ({
-  pagesLoading: state.mall.allPagesLoading,
-  updateLoading: state.mall.pageUpdateLoading,
-  pages: state.mall.allPages,
-  paging: state.mall.allPagesPaging,
-  selectedRowKeys: state.mall.allPagesSelectedRowKeys,
-
+  pagesLoading: state.mall.pagesLoading,
+  updateStateLoading: state.mall.updatePagesStateLoading,
+  pages: state.mall.pages,
+  paging: state.mall.pagesPaging,
+  selectedRowKeys: state.mall.pagesSelectedRowKeys,
 }))
 @Form.create()
 export default class Options extends PureComponent {
   componentWillMount() {
-    this.updateAllPages();
+    this.getPages();
   }
 
   onSelectChange = (selectedRowKeys) => {
-    /*this.props.dispatch({
+    this.props.dispatch({
       type: 'mall/changeSelectedRowKeys',
-      payload: { key: 'allItemsSelectedRowKeys', value: selectedRowKeys },
-    });*/
+      payload: { key: 'pagesSelectedRowKeys', value: selectedRowKeys },
+    });
   }
 
-  clearSelected = () => {
-    /*this.props.dispatch({
-      type: 'items/changeSelectedRowKeys',
-      payload: { key: 'allItemsSelectedRowKeys', value: [] },
-    });*/
-  }
-
-  updateAllPages = (n) => {
+  getPages = (n) => {
     const { paging } = this.props;
     const payload = {
       page: n || paging.current || 1,
     };
 
     this.props.dispatch({
-      type: 'mall/getAllPages',
+      type: 'mall/getPages',
       payload,
     });
   }
 
-  showConfirm = (key, ids) => {
-    confirm({
-      title: '确认要删除选中页面吗?',
-      onOk: () => { this.updateItemState(key, ids); },
+  clearSelected = () => {
+    this.props.dispatch({
+      type: 'mall/changeSelectedRowKeys',
+      payload: { key: 'pagesSelectedRowKeys', value: [] },
     });
   }
 
-  updatePageState = (key, ids) => {
-    /*const { submitting } = this.props;
-    if (!submitting && ids.length) {
-      this.props.dispatch({
-        type: 'items/changeItems',
-        payload: { product_id_list: ids, type: key },
-      });
-    }*/
+
+  showConfirm = (key, ids) => {
+    confirm({
+      title: '确认要删除选中页面吗?',
+      onOk: () => { this.updatePagesState(key, ids); },
+    });
+  }
+
+  updatePagesState = (key, ids) => {
+    this.props.dispatch({
+      type: 'mall/updatePagesState',
+      payload: { page_id_list: ids, type: key },
+    }).then(this.getPages);
   }
 
   activeMenu = (value, ids) => {
-    /*const key = value.key - 0;
-
+    const key = value.key - 0;
     if (key === 3) {
       this.showConfirm(key, ids);
-    } else if (key === 4) {
-      this.showModal(ids);
     } else {
-      this.updateItemState(key, ids);
-    }*/
+      this.updatePagesState(key, ids);
+    }
   }
 
-  updatePages = (n) => {
-    /*const { groupsPaging } = this.props;
-    const payload = {
-      page: n || groupsPaging.current || 1,
-    };
-
-    if (!groupsPaging || !groupsPaging.length) {
-      this.props.dispatch({
-        type: 'items/getGroups',
-        payload,
-      });
-    }*/
-  }
   render() {
-    const { getFieldDecorator } = this.props.form;
-    const { pagesLoading, updateLoading, pages, paging, selectedRowKeys } = this.props;
+    const { pagesLoading, updateStateLoading, pages, paging, selectedRowKeys } = this.props;
 
     const columns = [
       {
@@ -135,17 +113,18 @@ export default class Options extends PureComponent {
           const id = [data.page_id];
           return (
             <Button.Group size="small">
+              <Button type="primary"><Link to={`/mall/page/${data.page_id}`}><Icon type="edit" /> 编辑</Link></Button>
               {data.up_and_down === 2 &&
-              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }} icon="check-circle-o">
+              <Button onClick={() => { this.activeMenu({ key: 1 }, id); }} icon="check-circle-o" type="primary" ghost>
                 发布
               </Button>
               }
               {data.up_and_down === 1 &&
-              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }} icon="minus-circle-o" >
+              <Button onClick={() => { this.activeMenu({ key: 2 }, id); }} icon="minus-circle-o" type="primary" ghost>
                 隐藏
               </Button>
               }
-              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }} icon="delete" />
+              <Button onClick={() => { this.activeMenu({ key: 3 }, id); }} icon="delete" type="primary" ghost />
             </Button.Group>
           );
         },
@@ -161,7 +140,7 @@ export default class Options extends PureComponent {
       <PageHeaderLayout title="页面设置">
         <Card bordered={false}>
           <Link to="/mall/page/new" style={{ marginRight: 10 }}>
-            <Button type="primary" icon="plus" >新建集合</Button>
+            <Button type="primary" icon="plus" >添加页面</Button>
           </Link>
           <Dropdown
             overlay={
@@ -185,26 +164,23 @@ export default class Options extends PureComponent {
             <strong>{selectedRowKeys.length}</strong>
             项
             <Button
-              type="primary"
               size="small"
-              icon="rollback"
+              icon="close"
               onClick={this.clearSelected}
             >
               清空
             </Button>
           </span>
           <Table
-            rowKey="product_id"
+            rowKey="page_id"
             columns={columns}
             dataSource={pages}
-            loading={pagesLoading}
+            loading={pagesLoading || updateStateLoading}
             rowSelection={rowSelection}
             style={{ marginTop: 20 }}
             pagination={{
               ...paging,
-              onChange: (n) => {
-                this.handleSubmit(n);
-              },
+              onChange: this.getPages,
             }}
           />,
 

@@ -42,7 +42,7 @@ export const getNavData = app => [
             component: dynamicWrapper(app, ['items'], () => import('../routes/Items/Group')),
           },
           {
-            name: '创建集合',
+            name: '新建集合',
             path: '/group/new',
             invisible: true,
             component: dynamicWrapper(app, ['items'], () => import('../routes/Items/GroupDetail')),
@@ -64,6 +64,18 @@ export const getNavData = app => [
             name: '页面设置',
             path: 'pages',
             component: dynamicWrapper(app, ['mall'], () => import('../routes/Mall/Pages')),
+          },
+          {
+            name: '添加页面',
+            path: '/page/new',
+            invisible: true,
+            component: dynamicWrapper(app, ['mall'], () => import('../routes/Mall/PageDetail')),
+          },
+          {
+            name: '页面详情',
+            path: '/page/:id',
+            invisible: true,
+            component: dynamicWrapper(app, ['mall'], () => import('../routes/Mall/PageDetail')),
           },
         ],
       },

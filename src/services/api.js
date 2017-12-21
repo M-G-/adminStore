@@ -116,3 +116,38 @@ export async function getPages(params) {
     author: true,
   });
 }
+
+export async function createPage(params) {
+  return request('/pages', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getPageDetail(id) {
+  return request(`/pages/${id}`, {
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updatePage(params) {
+  const { id, ...rest } = params;
+  return request(`/pages/${id}`, {
+    method: 'POST',
+    body: rest,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updatePagesState(params) {
+  return request('/pages/action', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}

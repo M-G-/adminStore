@@ -69,7 +69,7 @@ export default class ItemsGroup extends PureComponent {
             <div>
               <Button.Group size="small">
                 <Button type="primary"><Link to={`/items/group/${data.collection_id}`}><Icon type="edit" /> 编辑</Link></Button>
-                <Button icon="delete" onClick={this.showConfirm.bind(this, data.collection_id)} />
+                <Button icon="delete" onClick={this.showConfirm.bind(this, data.collection_id)} type="primary" ghost />
               </Button.Group>
 
             </div>
