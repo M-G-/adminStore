@@ -77,6 +77,23 @@ export const getNavData = app => [
             invisible: true,
             component: dynamicWrapper(app, ['mall'], () => import('../routes/Mall/PageDetail')),
           },
+          {
+            name: '博客文章',
+            path: 'blogs',
+            component: dynamicWrapper(app, ['blog'], () => import('../routes/Blog/Articles')),
+          },
+          {
+            name: '添加博客文章',
+            path: 'blog/new',
+            invisible: true,
+            component: dynamicWrapper(app, ['blog'], () => import('../routes/Blog/ArticleDetail')),
+          },
+          {
+            name: '博客文章详情',
+            path: 'blog/:id',
+            invisible: true,
+            component: dynamicWrapper(app, ['blog'], () => import('../routes/Blog/ArticleDetail')),
+          },
         ],
       },
       {

@@ -151,3 +151,92 @@ export async function updatePagesState(params) {
     author: true,
   });
 }
+
+/** 博客相关 **/
+export async function getBlogs(params) {
+  return request('/blogs', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function createBlogs(params) {
+  return request('/blogs', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getBlogsDetail(id) {
+  return request(`/blogs/${id}`, {
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateBlogs(params) {
+  const { id, ...rest } = params;
+  return request(`/blogs/${id}`, {
+    method: 'POST',
+    body: rest,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateBlogsState(params) {
+  return request('/blogs/action', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getArticles(params) {
+  return request('/article', {
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function createArticle(params) {
+  return request('/article', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function getArticleDetail(id) {
+  return request(`/article/${id}`, {
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateArticle(params) {
+  const { id, ...rest } = params;
+  return request(`/article/${id}`, {
+    method: 'POST',
+    body: rest,
+    showError: true,
+    author: true,
+  });
+}
+
+export async function updateArticlesState(params) {
+  return request('/article/action', {
+    method: 'POST',
+    body: params,
+    showError: true,
+    author: true,
+  });
+}
+
+
